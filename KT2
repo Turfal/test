@@ -1,0 +1,81 @@
+import csv
+import json
+
+
+def load_books_and_users(books_path, users_path):
+    books = []
+    users = []
+
+    with open(books_path, newline='') as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            books.append(row)
+
+    with open(users_path) as json_file:
+        users = json.load(json_file)
+
+    return users, books
+
+
+def extract_book_data(book_collection):
+    result = []
+    if isinstance(book_collection, list):
+        for book in book_collection:
+            obj_book = {
+                "title": book['Title'],
+                "author": book['Author'],
+                "pages": book['Pages'],
+                "genre": book['Genre']
+            }
+            result.append(obj_book)
+    else:
+        obj_book = {
+            "title": book_collection['Title'],
+            "author": book_collection['Author'],
+            "pages": book_collection['Pages'],
+            "genre": book_collection['Genre']
+        }
+        result.append(obj_book)
+    return result
+
+
+def extract_user_data(user, user_books):
+    result_books = extract_book_data(user_books)
+    result = {
+        "name": user['name'],
+        "gender": user['gender'],
+        "address": user['address'],
+        "age": user['age'],
+        "books": result_books
+    }
+
+    return result
+
+
+def generate_result_data(users, books):
+    user_count = len(users)
+    book_count = len(books)
+
+    books_per_user = book_count // user_count
+    remainder = book_count % user_count
+
+    users_with_books = []
+    for i in range(user_count):
+        user = users[i]
+        user_books = books[i * books_per_user:(i + 1) * books_per_user]
+
+        if i < remainder:
+            extra_book = books[user_count * books_per_user + i]
+            user_books.append(extra_book)
+
+        user_data = extract_user_data(user, user_books)
+        users_with_books.append(user_data)
+
+    return users_with_books
+
+
+if __name__ == "__main__":
+    books_filepath = "books.csv"
+    users_filepath = "users.json"
+    user_data, book_data = load_books_and_users(books_filepath, users_filepath)
+    result_data = generate_result_data(user_data, book_data)
