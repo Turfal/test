@@ -1,0 +1,93 @@
+import requests
+import pprint
+
+class BaseRequest:
+    def __init__(self, base_url):
+        self.base_url = base_url
+        # set headers, authorisation etc
+
+    def _request(self, url, request_type, data=None, expected_error=False):
+        stop_flag = False
+        while not stop_flag:
+            if request_type == 'GET':
+                response = requests.get(url)
+            elif request_type == 'POST':
+                response = requests.post(url, data=data)
+            else:
+                response = requests.delete(url)
+
+            if not expected_error and response.status_code == 200:
+                stop_flag = True
+            elif expected_error:
+                stop_flag = True
+
+        # log part
+        pprint.pprint(f'{request_type} example')
+        pprint.pprint(response.url)
+        pprint.pprint(response.status_code)
+        pprint.pprint(response.reason)
+        pprint.pprint(response.text)
+        pprint.pprint(response.json())
+        pprint.pprint('**********')
+        return response
+
+    def get(self, endpoint, endpoint_id, expected_error=False):
+        url = f'{self.base_url}/{endpoint}/{endpoint_id}'
+        response = self._request(url, 'GET', expected_error=expected_error)
+        return response.json()
+
+    def post(self, endpoint, endpoint_id, body):
+        url = f'{self.base_url}/{endpoint}/{endpoint_id}'
+        response = self._request(url, 'POST', data=body)
+        return response.json()['message']
+
+    def delete(self, endpoint, endpoint_id):
+        url = f'{self.base_url}/{endpoint}/{endpoint_id}'
+        response = self._request(url, 'DELETE')
+        return response.json()['message']
+
+    def put(self, endpoint, endpoint_id, body):
+        url = f'{self.base_url}/{endpoint}/{endpoint_id}'
+        response = self._request(url, 'PUT', data=body)
+        return response.json()['message']
+
+BASE_URL_PETSTORE = 'https://petstore.swagger.io/v2'
+base_request = BaseRequest(BASE_URL_PETSTORE)
+
+user_data = {'id': 0, 'username': 'test_user', 'firstName': 'Test', 'lastName': 'User', 'email': 'test_user@example.com', 'password': 'password123', 'phone': '1234567890', 'userStatus': 1}
+
+# POST 
+new_user_id = base_request.post('user', '', user_data)
+print(f'Created new user with ID: {new_user_id}')
+
+# GET 
+user_info = base_request.get('user', 'test_user')
+pprint.pprint(user_info)
+
+# PUT 
+user_data_update = {'id': new_user_id, 'username': 'test_user', 'firstName': 'Test Updated', 'lastName': 'User', 'email': 'test_user_updated@example.com', 'password': 'password123', 'phone': '1234567890', 'userStatus': 1}
+update_message = base_request.put('user', 'test_user', user_data_update)
+print(f'User updated message: {update_message}')
+
+# DELETE -
+delete_message = base_request.delete('user', 'test_user')
+print(f'User delete message: {delete_message}')
+
+# Запросы для сущности Store
+
+# GET 
+inventory = base_request.get('store', 'inventory')
+pprint.pprint(inventory)
+
+# POST 
+order_data = {'id': 0, 'petId': new_pet_id, 'quantity': 1, 'shipDate': '2023-04-06T12:34:56.789Z', 'status': 'placed', 'complete': True}
+new_order_id = base_request.post('store', 'order', order_data)
+print(f'Created new order with ID: {new_order_id}')
+
+# GET 
+order_info = base_request.get('store', 'order', new_order_id)
+pprint.pprint(order_info)
+
+# DELETE 
+delete_order_message = base_request.delete('store', 'order', new_order_id)
+print(f'Delete order message: {delete_order_message}')
