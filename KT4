@@ -1,15 +1,21 @@
 import requests
 
-# Тестирование эндпоинта /breeds/list для получения списка всех пород
-def test_list_all_breeds():
+def test_list():
     url = "https://dog.ceo/api/breeds/list"
     response = requests.get(url)
     assert response.status_code == 200
     breeds = response.json()["message"]
     assert len(breeds) > 0
 
+def test_list_all():
+    url = "https://dog.ceo/api/breeds/list/all"
+    response = requests.get(url)
+    assert response.status_code == 200
+    breeds = response.json()["message"]
+    assert len(breeds) > 0
+
 # Тестирование эндпоинта /breeds/image/random для получения случайного изображения породы
-def test_random_breed_image():
+def test_random_breed():
     url = "https://dog.ceo/api/breeds/image/random"
     response = requests.get(url)
     assert response.status_code == 200
@@ -17,22 +23,24 @@ def test_random_breed_image():
     assert image_url.endswith(".jpg") or image_url.endswith(".png")
 
 # Тестирование эндпоинта /breeds/list/{breed}/images/random для получения случайного изображения подвида породы
-def test_random_subbreed_image():
-    breed = "bulldog"  # можно заменить на конкретную породу, у которой есть подвиды
+def test_random_subbreed_():
+    breed = "bulldog"
     url = f"https://dog.ceo/api/breed/{breed}/images/random"
     response = requests.get(url)
     assert response.status_code == 200
     image_url = response.json()["message"]
     assert image_url.endswith(".jpg") or image_url.endswith(".png")
 
-# Запуск всех тестов
-def run_tests():
-    test_list_all_breeds()
-    test_random_breed_image()
-    test_random_subbreed_image()
+def test_random_image():
+    breed = "bulldog"
+    url = f"https://dog.ceo/api/breed/{breed}/images/random/5"
+    response = requests.get(url)
+    assert response.status_code == 200
+    image_url = response.json()["message"]
+    assert image_url is not None
 
-# Запуск тестов
-run_tests()
+
+
 
 
 Отчет: Тесты пройдены без каких-либо проблем
